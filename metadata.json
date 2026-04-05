@@ -1,0 +1,5 @@
+{
+  "name": "高级番茄钟",
+  "description": "一个支持自定义轮数、时长和间隔的专业番茄钟，带有倒计时提示音。",
+  "requestFramePermissions": []
+}
