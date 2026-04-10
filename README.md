@@ -4,6 +4,8 @@
 
 SimplePomodoroTimer 是一个简洁的番茄钟网页应用，支持自定义专注时长、休息时长和总轮次，并提供倒计时音效提示，适合日常专注、学习和轻量任务管理。
 
+项目部署网站：<https://rsec.top/timer>
+
 ### 功能特性
 
 - 支持开始、暂停和重置计时
@@ -62,6 +64,8 @@ src/
 ## English
 
 SimplePomodoroTimer is a minimal web Pomodoro app with configurable focus duration, break duration, and total rounds. It includes countdown audio cues and is suitable for studying, focused work, and lightweight task routines.
+
+Project deployment website: <https://rsec.top/timer>
 
 ### Features
 
