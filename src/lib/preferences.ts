@@ -1,5 +1,5 @@
 export type ThemeMode = 'light' | 'dark';
-export type AppLanguage = 'zh' | 'en';
+export type AppLanguage = 'zh' | 'en' | 'ja';
 
 const themeStorageKey = 'simple-pomodoro-theme';
 const languageStorageKey = 'simple-pomodoro-lang';
@@ -19,6 +19,9 @@ function normalizeLanguage(value: string | null): AppLanguage | null {
   }
   if (normalized === 'en' || normalized === 'en-us' || normalized.startsWith('en-')) {
     return 'en';
+  }
+  if (normalized === 'ja' || normalized === 'ja-jp' || normalized.startsWith('ja-')) {
+    return 'ja';
   }
   return null;
 }
@@ -84,11 +87,14 @@ export function readInitialLanguage(storageKey = languageStorageKey): AppLanguag
     return stored;
   }
 
-  return window.navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+  const browserLang = window.navigator.language.toLowerCase();
+  if (browserLang.startsWith('zh')) return 'zh';
+  if (browserLang.startsWith('ja')) return 'ja';
+  return 'en';
 }
 
 export function applyLanguage(language: AppLanguage, storageKey = languageStorageKey) {
-  document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+  document.documentElement.lang = language === 'zh' ? 'zh-CN' : language === 'ja' ? 'ja' : 'en';
   window.localStorage.setItem(storageKey, language);
 }
 

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  ChevronDown,
   Languages,
   Minus,
   Moon,
@@ -70,6 +71,7 @@ const copy = {
     moreRound: '增加 1 轮',
     footer: 'Stay Focused · Keep Moving',
     switchToEnglish: '切换到 English',
+    switchToJapanese: '切换到 日本語',
     switchToChinese: '切换到中文',
     themeLight: '切换到浅色模式',
     themeDark: '切换到深色模式',
@@ -100,6 +102,7 @@ const copy = {
     moreRound: 'Increase by 1 round',
     footer: 'Stay Focused · Keep Moving',
     switchToEnglish: 'Switch to English',
+    switchToJapanese: 'Switch to Japanese',
     switchToChinese: 'Switch to Chinese',
     themeLight: 'Switch to light mode',
     themeDark: 'Switch to dark mode',
@@ -109,6 +112,37 @@ const copy = {
     plusMinute: 'Increase by 1 minute',
     minuteShort: 'm',
     secondShort: 's',
+  },
+  ja: {
+    appName: 'ポモドーロタイマー',
+    subtitle: '集中 · 休憩 · 繰り返し',
+    focusMode: '集中時間',
+    breakMode: '休憩時間',
+    roundStatus: (current: number, total: number) => `第 ${current} / ${total} ラウンド`,
+    reset: 'リセット',
+    start: '開始',
+    pause: '一時停止',
+    mute: 'ミュート',
+    unmute: 'サウンドを有効にする',
+    settings: '設定',
+    closeSettings: '設定を閉じる',
+    roundSettings: 'ラウンド設定',
+    focusDuration: '集中時間',
+    breakDuration: '休憩時間',
+    lessRound: '1ラウンド減らす',
+    moreRound: '1ラウンド増やす',
+    footer: 'Stay Focused · Keep Moving',
+    switchToEnglish: '英語に切り替え',
+    switchToJapanese: '日本語に切り替え',
+    switchToChinese: '中国語に切り替え',
+    themeLight: 'ライトモードに切り替え',
+    themeDark: 'ダークモードに切り替え',
+    minusMinute: '1分減らす',
+    minusFiveSeconds: '5秒減らす',
+    plusFiveSeconds: '5秒増やす',
+    plusMinute: '1分増やす',
+    minuteShort: '分',
+    secondShort: '秒',
   },
 } satisfies Record<AppLanguage, Record<string, string | ((current: number, total: number) => string)>>;
 
@@ -134,6 +168,10 @@ export default function App() {
   const targetTimeRef = useRef<number | null>(null);
   const lastAnnouncedSecondRef = useRef<number>(focusDuration);
   const t = copy[language];
+
+  // Language dropdown
+  const [langOpen, setLangOpen] = useState(false);
+  const langRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -224,6 +262,16 @@ export default function App() {
   }, [language]);
 
   useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    if (langOpen) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [langOpen]);
+
+  useEffect(() => {
     applyTheme(theme);
     cleanupThemeQueryParam();
   }, [theme]);
@@ -295,7 +343,7 @@ export default function App() {
     syncDisplayedTime(focusDuration);
   };
 
-  const toggleLanguage = () => setLanguage((current) => (current === 'zh' ? 'en' : 'zh'));
+  const toggleLanguage = () => setLanguage((current) => (current === 'zh' ? 'en' : current === 'en' ? 'ja' : 'zh'));
   const toggleTheme = () => setTheme((current) => (current === 'dark' ? 'light' : 'dark'));
 
   const currentModeDuration = getModeDuration(mode, focusDuration, breakDuration);
@@ -330,16 +378,44 @@ export default function App() {
           </div>
 
           <div className="tool-header-actions">
-            <button
-              type="button"
-              className="tool-text-button"
-              onClick={toggleLanguage}
-              title={language === 'zh' ? t.switchToEnglish as string : t.switchToChinese as string}
-              aria-label={language === 'zh' ? t.switchToEnglish as string : t.switchToChinese as string}
-            >
-              <Languages className="w-4 h-4" />
-              {language.toUpperCase()}
-            </button>
+            <div className="relative" ref={langRef}>
+              <button
+                type="button"
+                className="tool-text-button flex items-center gap-1"
+                onClick={() => setLangOpen(!langOpen)}
+                aria-label="Language"
+                aria-expanded={langOpen}
+              >
+                <Languages className="w-4 h-4" />
+                <span className="text-sm font-medium">{language.toUpperCase()}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {langOpen && (
+                <div className="absolute right-0 top-full mt-1 z-50 min-w-[100px] rounded-lg border py-1 shadow-lg backdrop-blur-xl"
+                  style={{
+                    background: 'var(--tool-surface)',
+                    borderColor: 'var(--tool-border)',
+                  }}
+                >
+                  {(['zh', 'en', 'ja'] as AppLanguage[]).map(l => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => { setLanguage(l); setLangOpen(false); }}
+                      className="w-full text-left px-3 py-1.5 text-sm transition-colors"
+                      style={{
+                        color: language === l ? 'var(--tool-accent)' : 'var(--tool-text)',
+                        background: 'transparent',
+                      }}
+                      onMouseEnter={e => { (e.target as HTMLElement).style.background = 'var(--tool-accent-soft)'; }}
+                      onMouseLeave={e => { (e.target as HTMLElement).style.background = 'transparent'; }}
+                    >
+                      {l === 'zh' ? '简体中文' : l === 'en' ? 'English' : '日本語'}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               className="tool-icon-button"
